@@ -1,0 +1,38 @@
+Download file from:
+
+https://www.dropbox.com/sh/4qfk1miauqbvqst/AACjQhzNuVV3OdTT7btdIXXba/Adam%20Ferrante%20-%20Triage-Memory.mem?dl=0
+sha1: c95e8cc8c946f95a109ea8e47a6800de10a27abd
+
+1. get your volatility on (5 Point) what is the SHA1 hash?
+
+2.pr0file (10 Point) volatility profile
+
+3.hey, write this down (12 Point) pocess ID of notepad.exe
+
+4.wscript can haz children (14 Point) name the child process of wscript.exe
+
+5.tcpip settings (18 Point) IP address
+
+6.intel (18 Point) IP of the attacker from PID infected
+
+7.i <’3 windows dependencies (20 Point) what process name is VCRUNTIME140.dll associated whit?
+
+8.mal-ware-are-you (20 Point) md5 has value of potential malware on the system
+
+9.lm-get bobs hash (24 Point) What is the LM hash of bobs account?
+
+10.vad the impaler (25 Point) What protections does the VAD node at 0xfffffa800577ba10 have?
+
+11.more vads?! (25 Point) protection VAD starting at Start 0x00000000033c0000 End 0x00000000033dffff
+
+12.vacation bible school (25 Point) There was a VBS script run on the machine.  What is the namem of the script?
+
+13.thx Microsoft (25 Point) what is the name of the program executed at 2019-03-07 23:06:58 UTC?
+
+14.lightbulb moment (35 Point) What was written in notepad.exe?
+
+15.8675309 (35 Point) What is the short name of the file at file record 59045?
+
+
+
+
