@@ -1,0 +1,152 @@
+(the sample was renamed as memory.mem)
+
+1. get your volatility on (5 Point) what is the SHA1 hash?
+
+$ sha1sum memory.mem 
+
+c95e8cc8c946f95a109ea8e47a6800de10a27abd
+
+2.pr0file (10 Point) volatility profile
+
+$ python vol.py -f memory.mem imageinfo
+
+Win7SP1x64
+
+3.hey, write this down (12 Point) pocess ID of notepad.exe
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 psscan | grep "notepad"
+
+0x000000013e8f9060 notepad.exe        3032   1432 0x000000007de76000 2019-03-22 05:32:22 UTC+0000
+
+4.wscript can haz children (14 Point) name the child process of wscript.exe
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 pstree
+
+... 0xfffffa8005a1d9e0:UWkpjFjDzM.exe
+
+5.tcpip settings (18 Point) IP address
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 netscan | grep "TCPv4"
+
+10.0.0.101
+
+6.intel (18 Point) IP of the attacker from PID infected
+
+Suponemos que el PID infected es el de wscript.exe y su hijo UWkpjFjDzM.exe
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 netscan | egrep '(wscript.exe|UWkpjFjDzM.exe)'
+
+UDPv4    127.0.0.1:55560                *:*                                   5116     wscript.exe    2019-03-22 05:35:32 UTC+0000
+TCPv4    10.0.0.101:49217               10.0.0.106:4444      ESTABLISHED      3496     UWkpjFjDzM.exe 
+
+7.i <’3 windows dependencies (20 Point) what process name is VCRUNTIME140.dll associated whit?
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 dlllist | egrep "VCRUNTIME140.dll" -B 50 
+
+El comando -B de egreep muestra 50 lineas before de contexto
+
+OfficeClickToR pid:   1136
+
+8.mal-ware-are-you (20 Point) md5 has value of potential malware on the system
+
+UWkpjFjDzM.exe tiene el pid 3496,
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 procdump -D dump/ -p 3496
+
+$ md5sum executable.3496.exe 
+
+690ea20bc3bdfb328e23005d9a80c290  executable.3496.exe
+
+9.lm-get bobs hash (24 Point) What is the LM hash of bobs account?
+
+Inmediatamente uno piensa en hashdump, "The hashdump plugin uses keys from both the SYSTEM and SAM hives"
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 hashdump
+Volatility Foundation Volatility Framework 2.6.1
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Bob:1000:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+
+10.vad the impaler (25 Point) What protections does the VAD node at 0xfffffa800577ba10 have?
+
+"Virtual Address Descriptors
+A process’ VAD tree describes the layout of its memory segments at a slightly higher level
+than the page tables. The operating system, not the CPU, defines and maintains these
+data structures. Thus, the OS can populate the VAD nodes with information about the
+underlying memory ranges that the CPU doesn’t necessarily care about."
+"Protection
+This field indicates what type of access should be allowed to the memory region."
+PAGE_EXECUTE : The memory can be executed, but not written. This protection can-
+not be used for mapped files.
+PAGE_EXECUTE_READ : The memory can be executed or read, but not written.
+PAGE_EXECUTE_READWRITE : The memory can be executed, read, or written. Injected
+code regions almost always have this protection.
+PAGE_EXECUTE_WRITECOPY : Enables execute, read-only, or copy-on-write access to a
+mapped view of a file. It cannot be set by calling VirtualAlloc or VirtualAllocEx .
+DLLs almost always have this protection.
+PAGE_NOACCESS : Disables all access to the memory. This protection cannot be used
+for mapped files. Applications can prevent accidental reads/writes to data by set-
+ting this protection.
+PAGE_READONLY : The memory can be read, but not executed or written.
+PAGE_READWRITE : The memory can be read or written, but not executed.
+PAGE_WRITECOPY : Enables read-only or copy-on-write access to a mapped view of
+a file. It cannot be set by calling VirtualAlloc or VirtualAllocEx .
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 vadinfo | egrep "0xfffffa800577ba10" -A 5
+Volatility Foundation Volatility Framework 2.6.1
+VAD node @ 0xfffffa800577ba10 Start 0x0000000000030000 End 0x0000000000033fff Tag Vad 
+Flags: NoChange: 1, Protection: 1
+Protection: PAGE_READONLY
+
+
+11.more vads?! (25 Point) protection VAD starting at Start 0x00000000033c0000 End 0x00000000033dffff
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 vadinfo | egrep "Start 0x00000000033c0000 End 0x00000000033dffff" -A 10
+Volatility Foundation Volatility Framework 2.6.1
+VAD node @ 0xfffffa80052652b0 Start 0x00000000033c0000 End 0x00000000033dffff Tag VadS
+Flags: CommitCharge: 32, PrivateMemory: 1, Protection: 24
+Protection: PAGE_NOACCESS
+
+12.vacation bible school (25 Point) There was a VBS script run on the machine.  What is the namem of the script?
+
+VBScript was a scripting language modeled after Microsoft’s Visual Basic. Its full name is “Microsoft Visual Basic Scripting Edition.”
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 dlllist -p 5116
+Volatility Foundation Volatility Framework 2.6.1
+************************************************************************
+wscript.exe pid:   5116
+Command line : "C:\Windows\System32\wscript.exe" //B //NOLOGO %TEMP%\vhjReUDEuumrX.vbs
+
+13.thx Microsoft (25 Point) what is the name of the program executed at 2019-03-07 23:06:58 UTC?
+
+The Shimcache registry keys are part of the Application Compatibility Database, which
+“identifies application compatibility issues and their solutions” (see http://msdn
+.microsoft.com/en-us/library/bb432182(v=vs.85).aspx ). These keys contains a path for
+an executable and the last modified timestamp from the $STANDARD_INFORMATION attri-
+bute of the MFT entry
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 shimcache | egrep "2019-03-07"
+Volatility Foundation Volatility Framework 2.6.1
+2019-03-07 23:06:58 UTC+0000   \??\C:\Program Files (x86)\Microsoft\Skype for Desktop\Skype.exe
+
+
+14.lightbulb moment (35 Point) What was written in notepad.exe?
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 pslist | egrep "notepad.exe"
+Volatility Foundation Volatility Framework 2.6.1
+0xfffffa80054f9060 notepad.exe            3032   1432      1       60      1      0 2019-03-22 05:32:22 UTC+0000
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 memdump -D dump/ -p 3032
+
+$ strings -e l 3032.dmp | egrep "flag"
+
+flag<REDBULL_IS_LIFE>
+
+
+
+15.8675309 (35 Point) What is the short name of the file at file record 59045?
+
+
+The mftparser plugin includes the MFT entry’s path, file type, timestamps, record number, and resident data (if any).
+
+$ python vol.py -f memory.mem --profile=Win7SP1x64 mftparser | egrep "59045" -A 50
